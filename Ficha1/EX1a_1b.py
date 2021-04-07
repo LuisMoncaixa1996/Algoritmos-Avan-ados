@@ -96,7 +96,7 @@ def test():
     print (st.find_pattern("TA"))
     print (st.find_pattern("ACG"))
     print(st.nodes_below(2))
-    print(st.get_leafes_below(0))
+    print(st.get_leafes_below(7))
 
 def test2():
     seq = "TACTAGHF"
