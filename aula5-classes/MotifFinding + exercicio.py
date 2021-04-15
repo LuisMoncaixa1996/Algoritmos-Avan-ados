@@ -197,25 +197,26 @@ class MotifFinding:
 
     def gibbs (self, iterations):
         from random import randint
-        s = []
+        s = [] #criar a lista s de posições iniciais
         for i in range(len(self.seqs)):
-            s.append(randint(0, len(self.seqs[0]) - self.motifSize - 1))
+            s.append(randint(0, len(self.seqs[0]) - self.motifSize - 1)) #escolher um numero random de start para cada sequência
         best_s = list(s)
         best_score = self.scoreMult(s)
         for it in range(iterations):
             # randomly pick a sequence
             seq_idx = randint(0, len(self.seqs) - 1)
-            seq_sel = self.seqs[seq_idx]
-            s.pop(seq_idx)
-            removed = self.seqs.pop(seq_idx)
-            motif = self.createMotifFromIndexes(s)
+            #Passo 3: criar um perfil que não contenha a sequência aleatória
+            seq_sel = self.seqs[seq_idx] #indicar qual a seq que vai remover
+            s.pop(seq_idx) #vai remover a posição inicial correspondente a seq escolhida para ser removida
+            removed = self.seqs.pop(seq_idx) #vai dar pop sa seq na lista e guardar no removed
+            motif = self.createMotifFromIndexes(s) #Criar o perfil sem a sequência removida
             motif.createPWM()
-            self.seqs.insert(seq_idx, removed)
-            r = motif.probAllPositions(seq_sel)
-            pos = self.roulette(r)
-            s.insert(seq_idx, pos)
-            score = self.scoreMult(s)
-            if score > best_score:
+            self.seqs.insert(seq_idx, removed) #vai voltar a adicionar a seq removida a lista de seqs na posição seq_idx
+            r = motif.probAllPositions(seq_sel)#vai calcular a probabilidade de todas as subseqs possiveis na seq removida
+            pos = self.roulette(r)#vai fazer o roulette da lista e escolher um dos valores com valores maior que 0, devolvendo a posição onde se iniciou o motif
+            s.insert(seq_idx, pos)#vai adicionar o valor da pos do motif ao s na posição seq_idx
+            score = self.scoreMult(s)#vai calcular o score do novo s
+            if score > best_score:#vai ver se este é maior que o melhor scor se for, o melhorscore passa a ser o score e a bests passa a ser a s
                 best_score = score
                 best_s = list(s)
         return best_s
@@ -238,71 +239,34 @@ class MotifFinding:
 
 # Alteração de algumas funções de forma a ser possível analisar através do algoritmo heurístico estocástico para pseudocontagens
 
-    def pseudscore(self,s):
+    def pseudoscore(self, s): #Calculo do score para as pseudocontagens
         score = 0
         motif = self.createMotifFromIndexes(s)
-        motif.doCounts()
-        mat = []
-        for l in range(len(motif.counts)):
-            row = []
-            for k in range(len(motif.counts[l])):
-                row.append(motif.counts[l][k] + 1)
-            mat.append(row)
-        for j in range(len(mat[0])):
+        motif.pseudoCounts() #Cria a matriz das pseudocontagens, função criada na classe MyMotifs
+        mat = motif.counts
+        for j in range(len(mat[0])):#Iteração das colunas da matriz e definir o maior valor
+            maxcol = mat[0][j]
+            for  i in range(1, len(mat)):
+                if mat[i][j] > maxcol:  # Comparar os valores da matriz com o valor máximo obtido e caso seja superior definir esse valor como o maior score.
+                    maxcol = mat[i][j]
+            score += maxcol
+        return score
+
+    
+    def pseudoscoreMult(self, s): #Calculo do score probabilistico das pseudocontagens
+        score = 1.0
+        motif = self.createMotifFromIndexes(s)
+        motif.pseudoPWM() #Cria a PWM a partir dos counts das pseudocontagens, função criada na classe MyMotifs 
+        mat = motif.pwm
+        for j in range(len(mat[0])): #Processo de iteração e definição do maior valor de score igual à função pseudoScore
             maxcol = mat[0][j]
             for  i in range(1, len(mat)):
                 if mat[i][j] > maxcol: 
                     maxcol = mat[i][j]
-            score += maxcol
-        return score
-    
-    def pseudprobabSeq (self, seq, pwm):
-        res = 1.0
-        for i in range(self.motifSize):
-            lin = self.alphabet.index(seq[i])
-            res *= pwm[lin][i]
-        return res
-
-    def pseudmostProbableSeq(self, seq, pwm):
-        maximo = -1.0
-        maxind = -1
-        for k in range(len(seq)-self.motifSize):
-            p = self.pseudprobabSeq(seq[k:k+ self.motifSize], pwm)
-            if(p > maximo):
-                maximo = p
-                maxind = k
-        return maxind
-    
-    def pseudpwm(self, pwm):
-        pseudopwm = []
-        for i in range(len(pwm)):
-            row = []
-            for j in range(len(pwm[0])):
-                row.append(pwm[i][j] + 0.1)
-            pseudopwm.append(row)
-        return pseudopwm
-    
-    def pseudprobAllPositions(self, seq, pwm):
-        res = []
-        for k in range(len(seq)-self.motifSizes+1):
-            res.append(self.pseudprobabSeq(seq, pwm))
-        return res
-    
-    def pseudscoreMult(self, s):
-        score = 1.0
-        motif = self.createMotifFromIndexes(s)
-        motif.createPWM()
-        mat = motif.pwm
-        pseudopwm = self.pseudpwm(mat)
-        for j in range(len(pseudopwm[0])):
-            maxcol = pseudopwm[0][j]
-            for  i in range(1, len(pseudopwm)):
-                if pseudopwm[i][j] > maxcol: 
-                    maxcol = pseudopwm[i][j]
             score *= maxcol
         return score
+        
     
-# Analise através algoritmo heurístico estocástico para pseudocontagens:
     def pseudheuristicStochastic (self):
         from random import randint
         s = [0] * len(self.seqs)
@@ -312,19 +276,17 @@ class MotifFinding:
             #randint(A,B) =>   A<=x<=B
             s[i] = randint(0, self.seqSize(i)-self.motifSize)
         #passo2
-        best_score = self.pseudscore(s)
+        best_score = self.pseudoscore(s) #Score calculado para as pseudocontagens
         improve = True
         while improve:
             #constroi o perfil com base nas posições iniciais s
             motif = self.createMotifFromIndexes(s)
-            motif.createPWM()
-            pwm = motif.pwm
-            pseudopwm = self.pseudpwm(pwm)
+            motif.pseudoPWM() #Criação da PWM para as pseudocontagens
             #avalia a melhor posição inicial para cada sequência com base no perfil
             for i in range(len(self.seqs)):
-                s[i] = self.pseudmostProbableSeq(self.seqs[i], pseudopwm)
+                s[i] = motif.mostProbableSeq(self.seqs[i])#Verificar qual das subseqs é mais provavel de ocorrer na matriz PWM
             #verifica se houve melhoria
-            scr = self.pseudscore(s)
+            scr = self.pseudoscore(s)
             if scr > best_score:
                 best_score = scr
             else:
@@ -333,31 +295,32 @@ class MotifFinding:
     
     def pseudgibbs (self, iterations):
         from random import randint
-        s = []
+        s = [] #criar a lista s de posições iniciais
         for i in range(len(self.seqs)):
-            s.append(randint(0, len(self.seqs[0]) - self.motifSize - 1))
+            s.append(randint(0, len(self.seqs[0]) - self.motifSize - 1))#escolher um numero random de start para cada sequência
         best_s = list(s)
-        best_score = self.pseudscore(s)
+        best_score = self.pseudoscore(s) #Calculo de score para as pseudocontagens
         for it in range(iterations):
             # randomly pick a sequence
             seq_idx = randint(0, len(self.seqs) - 1)
-            seq_sel = self.seqs[seq_idx]
-            s.pop(seq_idx)
-            removed = self.seqs.pop(seq_idx)
-            motif = self.createMotifFromIndexes(s)
-            pwm = motif.createPWM()
-            pseudopwm = self.pseudpwm(pwm)
-            self.seqs.insert(seq_idx, removed)
-            r = motif.pseudprobAllPositions(seq_sel,pseudopwm)
-            pos = self.roulette(r)
-            s.insert(seq_idx, pos)
-            score = self.pseudscore(s)
-            if score > best_score:
+            #Passo 3: criar um perfil que não contenha a sequência aleatória
+            seq_sel = self.seqs[seq_idx] #indicar qual a seq que vai remover
+            s.pop(seq_idx) #vai remover a posição inicial correspondente a seq escolhida para ser removida
+            removed = self.seqs.pop(seq_idx)#vai dar pop sa seq na lista e guardar no removed
+            motif = self.createMotifFromIndexes(s)#Criar o perfil sem a sequência removida
+            motif.pseudoPWM() #Criação da PWM para as pseudocontagens
+            self.seqs.insert(seq_idx, removed)#vai voltar a adicionar a seq removida a lista de seqs na posição seq_idx
+            r = motif.probAllPositions(seq_sel)#vai calcular a probabilidade de todas as subseqs possiveis na seq removida
+            pos = self.roulette(r)#vai fazer o roulette da lista e escolher um dos valores com valores maior que 0, devolvendo a posição onde se iniciou o motif
+            s.insert(seq_idx, pos)#vai adicionar o valor da pos do motif ao s na posição seq_idx
+            score = self.pseudoscore(s)#vai calcular o score do novo s
+            if score > best_score:#vai ver se este é maior que o melhor scor se for, o melhorscore passa a ser o score e a bests passa a ser a s
                 best_score = score
                 best_s = list(s)
         return best_s
-        
+    
 # tests
+
 
 def test1():  
     sm = MotifFinding()
@@ -419,14 +382,16 @@ def test5():
     print("Heuristic stochastic")
     sol = mf.pseudheuristicStochastic()
     print ("Solution: " , sol)
-    print ("Score:" , mf.pseudscore(sol))
-    print ("Score mult:" , mf.scoreMult(sol))
+    print ("Score:" , mf.pseudoscore(sol))
+    print ("Score mult:" , mf.pseudoscoreMult(sol))
     print("Consensus:", mf.createMotifFromIndexes(sol).consensus())
     
     sol2 = mf.gibbs(1000)
-    print ("Score:" , mf.pseudscore(sol2))
-    print ("Score mult:" , mf.scoreMult(sol2))
+    print ("Score:" , mf.pseudoscore(sol2))
+    print ("Score mult:" , mf.pseudoscoreMult(sol2))
+ 
     
+ 
 test1()
 print('-=' * 30)
 test2()

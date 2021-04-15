@@ -61,28 +61,29 @@ class SuffixTree:
         return res
     
     def nodes_below(self, node): #exercicio 1 a)
-        l = list(self.nodes[node][1].values())
+        l = list(self.nodes[node][1].values()) # Colocar em uma lista os nº do nó de destino em cada arco correspondente ao nó selecionado
+        print(l)
         for i in l:
-            l.extend(list(self.nodes[i][1].values()))
+            l.extend(list(self.nodes[i][1].values())) # Aumentar a lista com os nº do nó de destino dos arcos já existentes na lista
         return l
     
     def matches_prefix(self, prefix): # exercicio 1 b)
-        pre = SuffixTree.find_pattern(self, prefix)
+        pre = SuffixTree.find_pattern(self, prefix) #Definir as posições iniciais onde se encontra o prefixo
         if pre == None or []:
             return None
         else:
             match = []
             for i in pre:
-                match.append(self.seq[i:])
+                match.append(self.seq[i:]) #Adicionar à lista os padrões cujo, as posições iniciais são as correspondentes ao prefixo
             for j in range(len(match)):
-                dp = len(match[j])
+                dp = len(match[j]) #Tamanho do padrão encontrado
                 c = 1
-                while dp > len(prefix):
-                    match.append(match[j][:-c])
+                while dp > len(prefix): 
+                    match.append(match[j][:-c]) #Adicionar à lista os padrões que contêm o prefixo, retirando um caracter de cada vez até o tamanho do padrão ser 0
                     dp -= 1
                     c += 1
             distintpattern = []
-            for l in match:
+            for l in match:      #Colocar numa nova lista os padrões encontrados, retirando os duplicados
                 if l not in distintpattern:
                     distintpattern.append(l)
             return distintpattern
@@ -93,10 +94,10 @@ def test():
     st = SuffixTree()
     st.suffix_tree_from_seq(seq)
     st.print_tree()
-    print (st.find_pattern("TA"))
-    print (st.find_pattern("ACG"))
-    print(st.nodes_below(2))
-    print(st.get_leafes_below(7))
+    #print (st.find_pattern("TA"))
+    #print (st.find_pattern("ACG"))
+    print(st.nodes_below(0))
+    #print(st.get_leafes_below(7))
 
 def test2():
     seq = "TACTAGHF"

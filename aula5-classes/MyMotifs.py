@@ -9,6 +9,12 @@ def createMatZeros (nl, nc):
         res.append([0]*nc)
     return res
 
+def createcountmat (nl, nc):
+    res = []
+    for i in range(0, nl):
+        res.append([1]*nc)
+    return res
+
 def printMat(mat):
     for i in range(0, len(mat)): print(mat[i])
 
@@ -30,6 +36,13 @@ class MyMotifs:
             for i in range(self.size):
                 lin = self.alphabet.index(s[i])
                 self.counts[lin][i] += 1
+    
+    def pseudoCounts(self): #Função que vai criar a matriz de pseudocontagens
+        self.counts = createcountmat(len(self.alphabet), self.size) #Utilização da função createcountmat, que cria uma matriz de 1's
+        for s in self.seqs:
+            for i in range(self.size):
+                lin = self.alphabet.index(s[i])
+                self.counts[lin][i] += 1
                 
     def createPWM(self):
         if self.counts == None: self.doCounts()
@@ -38,6 +51,13 @@ class MyMotifs:
             for j in range(self.size):
                 self.pwm[i][j] = float(self.counts[i][j]) / len(self.seqs)
                 
+    def pseudoPWM(self): #Função que vai criar a PWM para as pseudocontagens
+        self.pseudoCounts() #Utilização da matriz das pseudocontagens
+        self.pwm = createMatZeros(len(self.alphabet), self.size)
+        for i in range(len(self.alphabet)):
+            for j in range(self.size):
+                self.pwm[i][j] = float(self.counts[i][j]) / len(self.seqs)
+    
     def consensus(self):
         res = ""
         for j in range(self.size):

@@ -52,7 +52,7 @@ class EAMotifsReal (EvolAlgorithm):
 
     def initPopul(self, indsize):
         maxvalue = self.motifs.seqSize(0) - self.motifs.motifSize
-        self.popul = PopulReal(self.popsize, indsize,0,
+        self.popul = PopulReal(self.popsize, indsize, 0,
                               maxvalue, [])
 
 
@@ -85,7 +85,6 @@ class EAMotifsReal (EvolAlgorithm):
                 maxind = k
         return maxind
     
-   
     
     def evaluate(self, indivs):
         
@@ -116,4 +115,4 @@ def test2():
 
 
 test1()
-#test2()
+test2()
