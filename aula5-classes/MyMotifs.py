@@ -56,7 +56,7 @@ class MyMotifs:
         self.pwm = createMatZeros(len(self.alphabet), self.size)
         for i in range(len(self.alphabet)):
             for j in range(self.size):
-                self.pwm[i][j] = float(self.counts[i][j]) / len(self.seqs)
+                self.pwm[i][j] = float(self.counts[i][j]) / (len(self.seqs) + len(self.alphabet))
     
     def consensus(self):
         res = ""

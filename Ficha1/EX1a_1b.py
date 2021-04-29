@@ -61,11 +61,10 @@ class SuffixTree:
         return res
     
     def nodes_below(self, node): #exercicio 1 a)
-        l = list(self.nodes[node][1].values()) # Colocar em uma lista os nº do nó de destino em cada arco correspondente ao nó selecionado
-        print(l)
-        for i in l:
-            l.extend(list(self.nodes[i][1].values())) # Aumentar a lista com os nº do nó de destino dos arcos já existentes na lista
-        return l
+        lb = list(self.nodes[node][1].values()) # Colocar em uma lista os nº do nó de destino em cada arco correspondente ao nó selecionado
+        for i in lb:
+            lb.extend(list(self.nodes[i][1].values())) # Aumentar a lista com os nº do nó de destino dos arcos já existentes na lista
+        return lb
     
     def matches_prefix(self, prefix): # exercicio 1 b)
         pre = SuffixTree.find_pattern(self, prefix) #Definir as posições iniciais onde se encontra o prefixo
@@ -107,9 +106,9 @@ def test2():
     print(st.matches_prefix('TA'))
 
 
-test()
+#test()
 #print()
-#test2()
+test2()
 
       
             

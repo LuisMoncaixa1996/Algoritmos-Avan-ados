@@ -1,6 +1,7 @@
 from EvolAlgorithm import EvolAlgorithm
 from Popul import PopulInt, PopulReal
 from MotifFinding import MotifFinding
+from MyMotifs import MyMotifs
 
 
 
@@ -91,10 +92,12 @@ class EAMotifsReal (EvolAlgorithm):
         for i in range(len(indivs)):
             ind = indivs[i]
             sol = ind.getGenes()
-            self.motifs.pwm = self.vec_to_pwm(sol)
+            pwm = self.vec_to_pwm(sol)
+            mtf = MyMotifs(pwm=pwm, alphabet=self.motifs_finding.alphabet)
             s = []
-            for seq in self.motifs.seqs:
-                p = self.mostProbableSeq(seq)
+            for j in range(len(self.motifs_finding.seqs)):
+                seq = self.motifs_finding.seqs[j].seq
+                p = mtf.mostProbableSeq(seq)
                 s.append(p)  
             fit1 = self.motifs.scoreMult(s,self.motifs.pwm) # com scoreMult
             fit = self.motifs.score(s) 
@@ -114,5 +117,5 @@ def test2():
     ea.printBestSolution()
 
 
-test1()
+#test1()
 test2()

@@ -14,10 +14,10 @@ class SuffixTree:
             else:
                 iseq = self.nodes[k][0]
                 c = ''
-                if iseq < 0:
-                    print (k, "->", self.nodes[k][1]) 
-                else:
-                    print (k, ":", iseq,c)
+            if iseq < 0:
+                print (k, "->", self.nodes[k][1]) 
+            else:
+                print (k, ":", iseq,c)
                 
     def add_node(self, origin, symbol, leafnum = -1):
         self.num += 1
@@ -62,7 +62,6 @@ class SuffixTree:
         seq1 = []
         seq2 = []
         if self.nodes[node][0] != -1:
-            print(self.nodes[node][0])
             iseq,c = self.nodes[node][0]
         else:
             iseq = self.nodes[node][0]
@@ -108,7 +107,7 @@ def test():
     st.print_tree()
     print (st.find_pattern("TA"))
     print (st.find_pattern("ACG"))
-    print(st.get_leafes_below(0))
+    print(st.get_leafes_below(2))
 
 def test2():
     seq1 = "GADGGFGGGGGGGGGHLDHOFOIGJKCTA"
@@ -120,6 +119,6 @@ def test2():
     
 
 
-#test()
+test()
 #print()
-test2()
+#test2()
